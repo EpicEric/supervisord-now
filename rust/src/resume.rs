@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use tokio::time::sleep;
 
@@ -7,6 +7,10 @@ use crate::jobs::{self, PROGRAM_PREFIX};
 use crate::state::AppState;
 
 const POLL_INTERVAL: Duration = Duration::from_secs(5);
+// Substitutions land in the store after the job transition that started them
+// (eg. a long-running daemon realizing packages for minutes), so also push
+// the store periodically, not just on job state changes.
+const SYNC_INTERVAL: Duration = Duration::from_secs(60);
 
 fn resume_file(state: &AppState) -> PathBuf {
     state.run_dir.join("resume.json")
@@ -73,14 +77,19 @@ pub fn spawn(state: AppState) {
     tokio::spawn(async move {
         resume_running(&state).await;
         let mut running = read_resume(&state);
+        let mut last_sync = Instant::now();
         loop {
             sleep(POLL_INTERVAL).await;
             let Some(observed) = observe(&state).await else {
                 continue;
             };
-            if observed != running {
-                write_resume(&state, &observed);
-                running = observed;
+            if observed != running || last_sync.elapsed() >= SYNC_INTERVAL {
+                if observed != running {
+                    write_resume(&state, &observed);
+                    running = observed;
+                }
+                last_sync = Instant::now();
+                tokio::spawn(crate::nixcache::sync(state.clone()));
             }
         }
     });

@@ -18,6 +18,15 @@ let
   nixConf = writeTextDir "/etc/nix/nix.conf" ''
     build-users-group =
     sandbox = false
+    experimental-features = nix-command flakes
+    substituters = file:///var/lib/supervisord-now/nix-cache https://cache.nixos.org
+    trusted-public-keys = cache.supervisord-now-1:Bm3PmPaRBEAyFIwNVFSlOgyUhw9XkJwXgXFyY1+nxO8= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+    secret-key-files = /etc/nix/cache-key
+  '';
+
+  cacheKey = runCommand "nix-cache-key" { } ''
+    mkdir -p $out/etc/nix
+    install -m 600 ${./nix/nix-cache-key} $out/etc/nix/cache-key
   '';
 
   jobsConfDir = runCommand "supervisord-jobs-conf" { } ''
@@ -57,6 +66,7 @@ dockerTools.buildLayeredImage {
     nil
     nixfmt-rs
     nixConf
+    cacheKey
     jobsConfDir
   ];
 
