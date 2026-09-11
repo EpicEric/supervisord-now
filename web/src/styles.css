@@ -95,3 +95,16 @@ body,
 #activityBar .action-item:has(.codicon-accounts-view-bar-icon) {
   display: none;
 }
+
+#connection-lost-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 4px 12px;
+  background: #5a1d1d;
+  color: #f48771;
+  font-size: 12px;
+  text-align: center;
+}

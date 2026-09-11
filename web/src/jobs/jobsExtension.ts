@@ -285,13 +285,15 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
     } else {
       const statusByName = new Map(this.statuses.map((status) => [status.name, status]));
       result.push(
-        ...this.evalResult.jobs.map((job): JobNode => ({
-          type: "job",
-          name: job.name,
-          id: job.id,
-          needs: job.needs,
-          status: statusByName.get(job.name),
-        })),
+        ...this.evalResult.jobs.map(
+          (job): JobNode => ({
+            type: "job",
+            name: job.name,
+            id: job.id,
+            needs: job.needs,
+            status: statusByName.get(job.name),
+          }),
+        ),
       );
     }
 

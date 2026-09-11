@@ -33,6 +33,8 @@ import { jobsExtension, startJobsExtension } from "./jobs/jobsExtension";
 import { nixExtension, nixGrammarUrl, nixLanguageConfigurationUrl } from "./nixLanguage";
 
 const WORKSPACE_URI = vscode.Uri.file("/workspace");
+const RECONNECT_DELAY_MS = 1_000;
+const RECONNECT_DELAY_MAX_MS = 30_000;
 
 export async function startWorkbench(container: HTMLElement): Promise<MonacoVscodeApiWrapper> {
   const provider = new RestFileSystemProvider();
@@ -144,36 +146,71 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
   return apiWrapper;
 }
 
-async function startLanguageClient(): Promise<LanguageClientWrapper> {
+async function startLanguageClient(): Promise<void> {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const url = `${protocol}://${window.location.host}/api/lsp`;
-  const webSocket = new WebSocket(url);
-  const iWebSocket = toSocket(webSocket);
-  const reader = new WebSocketMessageReader(iWebSocket);
-  const writer = new WebSocketMessageWriter(iWebSocket);
 
-  const languageClientConfig: LanguageClientConfig = {
-    languageId: "nix",
-    connection: {
-      options: {
-        $type: "WebSocketDirect",
-        webSocket,
-      },
-      messageTransports: { reader, writer },
-    },
-    clientOptions: {
-      documentSelector: [{ language: "nix", scheme: "file" }],
-      workspaceFolder: {
-        index: 0,
-        name: "workspace",
-        uri: WORKSPACE_URI,
-      },
-    },
+  const banner = document.createElement("div");
+  banner.id = "connection-lost-banner";
+  banner.textContent = "Connection lost. Reconnecting...";
+  banner.hidden = true;
+  document.body.appendChild(banner);
+
+  let delay = RECONNECT_DELAY_MS;
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const scheduleReconnect = () => {
+    if (reconnectTimer) return;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = undefined;
+      void connect();
+    }, delay);
+    delay = Math.min(delay * 2, RECONNECT_DELAY_MAX_MS);
   };
 
-  const lcWrapper = new LanguageClientWrapper(languageClientConfig);
-  await lcWrapper.start();
-  return lcWrapper;
+  const connect = async (): Promise<void> => {
+    const webSocket = new WebSocket(url);
+    webSocket.addEventListener("open", () => {
+      banner.hidden = true;
+    });
+    webSocket.addEventListener("error", () => {
+      banner.hidden = false;
+    });
+    webSocket.addEventListener("close", scheduleReconnect);
+
+    const iWebSocket = toSocket(webSocket);
+    const reader = new WebSocketMessageReader(iWebSocket);
+    const writer = new WebSocketMessageWriter(iWebSocket);
+
+    const languageClientConfig: LanguageClientConfig = {
+      languageId: "nix",
+      connection: {
+        options: {
+          $type: "WebSocketDirect",
+          webSocket,
+        },
+        messageTransports: { reader, writer },
+      },
+      clientOptions: {
+        documentSelector: [{ language: "nix", scheme: "file" }],
+        workspaceFolder: {
+          index: 0,
+          name: "workspace",
+          uri: WORKSPACE_URI,
+        },
+      },
+    };
+
+    const lcWrapper = new LanguageClientWrapper(languageClientConfig);
+    try {
+      await lcWrapper.start();
+      delay = RECONNECT_DELAY_MS;
+    } catch {
+      banner.hidden = false;
+    }
+  };
+
+  await connect();
 }
 
 async function fileExists(uri: vscode.Uri): Promise<boolean> {
