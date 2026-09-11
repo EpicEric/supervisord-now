@@ -139,7 +139,7 @@ pub async fn eval(State(state): State<AppState>) -> ApiResult<Json<serde_json::V
 
 #[derive(Serialize)]
 pub struct JobStatus {
-    pub name: String,
+    pub id: String,
     pub group: String,
     pub state: i64,
     pub statename: String,
@@ -160,7 +160,7 @@ impl From<(&str, &ProcessInfo)> for JobStatus {
                 info.statename.clone()
             };
         Self {
-            name: job.to_string(),
+            id: job.to_string(),
             group: info.group.clone(),
             state: info.state,
             statename,
@@ -181,7 +181,7 @@ pub async fn list(State(state): State<AppState>) -> ApiResult<Json<Vec<JobStatus
                 .map(|job| (job, info).into())
         })
         .collect();
-    jobs.sort_by(|a, b| a.name.cmp(&b.name));
+    jobs.sort_by(|a, b| a.id.cmp(&b.id));
     Ok(Json(jobs))
 }
 

@@ -25,7 +25,7 @@ export type EvalResponse =
   | { ok: false; error: string };
 
 export type JobStatus = {
-  name: string;
+  id: string;
   group: string;
   state: number;
   statename: string;

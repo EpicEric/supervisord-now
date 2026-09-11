@@ -283,7 +283,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
     } else if (this.evalResult.jobs.length === 0) {
       result.push({ type: "message", label: "No jobs in workflow." });
     } else {
-      const statusByName = new Map(this.statuses.map((status) => [status.name, status]));
+      const statusById = new Map(this.statuses.map((status) => [status.id, status]));
       result.push(
         ...this.evalResult.jobs.map(
           (job): JobNode => ({
@@ -291,7 +291,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
             name: job.name,
             id: job.id,
             needs: job.needs,
-            status: statusByName.get(job.name),
+            status: statusById.get(job.id),
           }),
         ),
       );
@@ -355,7 +355,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
     const channel =
       this.outputChannels.get(node.id) ??
       this.editor.window.createOutputChannel(`Job: ${node.name}`);
-    this.outputChannels.set(node.name, channel);
+    this.outputChannels.set(node.id, channel);
     const panel = document.querySelector<HTMLElement>("#panel");
     if (panel && getComputedStyle(panel).display === "none") {
       await this.editor.commands.executeCommand("workbench.action.togglePanel");
