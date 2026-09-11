@@ -4,7 +4,7 @@
   pkgs ? import inputs.nixpkgs { inherit system; },
 }:
 pkgs.callPackage ./package.nix {
-  now = import inputs.now { inherit pkgs; };
+  inherit (import "${inputs.now}/nix" { inherit pkgs; }) now now-step;
   supervisord = pkgs.callPackage ./nix/supervisord/package.nix { };
   supervisord-now = pkgs.callPackage ./rust/package.nix {
     web = pkgs.callPackage ./web/package.nix { };

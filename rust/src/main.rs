@@ -3,6 +3,7 @@ mod files;
 mod jobs;
 mod logs;
 mod lsp;
+mod resume;
 mod state;
 mod supervisor;
 
@@ -57,6 +58,7 @@ async fn main() {
         conf_dir,
         supervisor: supervisor::SupervisorClient::new(socket_path),
     };
+    resume::spawn(state.clone());
 
     let app = Router::new()
         .route("/api/health", get(health))

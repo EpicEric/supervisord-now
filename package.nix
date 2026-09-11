@@ -7,6 +7,7 @@
   nixfmt-rs,
   nixpkgs,
   now,
+  now-step,
   runCommand,
   supervisord,
   supervisord-now,
@@ -20,9 +21,9 @@ let
   '';
 
   jobsConfDir = runCommand "supervisord-jobs-conf" { } ''
-    mkdir -p $out/etc/supervisord-now $out/var/lib/supervisord-now $out/workspace
-    touch $out/etc/supervisord-now/.keep
+    mkdir -p $out/var/lib/supervisord-now/conf $out/workspace
     touch $out/var/lib/supervisord-now/.keep
+    touch $out/var/lib/supervisord-now/conf/.keep
   '';
 
   supervisordConf = writeText "supervisor.conf" ''
@@ -40,7 +41,7 @@ let
     redirect_stderr=true
 
     [include]
-    files=/etc/supervisord-now/*.conf
+    files=/var/lib/supervisord-now/conf/*.conf
   '';
 in
 dockerTools.buildLayeredImage {
@@ -51,6 +52,7 @@ dockerTools.buildLayeredImage {
     supervisord-now
     supervisord
     now
+    now-step
     nix
     nil
     nixfmt-rs
@@ -67,12 +69,14 @@ dockerTools.buildLayeredImage {
     Env = [
       "NIX_PATH=nixpkgs=${nixpkgs}"
       "NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
+      "SUPERVISOR_CONF_DIR=/var/lib/supervisord-now/conf"
     ];
     ExposedPorts = {
       "9991" = { };
     };
     Volumes = {
       "/workspace" = { };
+      "/var/lib/supervisord-now" = { };
     };
   };
 }

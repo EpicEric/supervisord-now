@@ -11,7 +11,7 @@ use crate::error::{ApiError, ApiResult};
 use crate::state::AppState;
 use crate::supervisor::ProcessInfo;
 
-const PROGRAM_PREFIX: &str = "now-job-";
+pub const PROGRAM_PREFIX: &str = "now-job-";
 
 pub fn program_name(job: &str) -> Result<String, ApiError> {
     if job.is_empty() || job.len() > 128 {
@@ -255,6 +255,7 @@ fn render_program_conf(
         "[program:{group}]\n\
          command={command}\n\
          directory={}\n\
+         autostart=false\n\
          autorestart=false\n\
          startsecs=0\n\
          startretries=0\n\
