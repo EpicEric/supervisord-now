@@ -1,0 +1,163 @@
+import { LogLevel } from "@codingame/monaco-vscode-api";
+import getEnvironmentServiceOverride from "@codingame/monaco-vscode-environment-service-override";
+import getExplorerServiceOverride from "@codingame/monaco-vscode-explorer-service-override";
+import getKeybindingsServiceOverride from "@codingame/monaco-vscode-keybindings-service-override";
+import getLifecycleServiceOverride from "@codingame/monaco-vscode-lifecycle-service-override";
+import getPreferencesServiceOverride from "@codingame/monaco-vscode-preferences-service-override";
+import getRemoteAgentServiceOverride from "@codingame/monaco-vscode-remote-agent-service-override";
+import getSearchServiceOverride from "@codingame/monaco-vscode-search-service-override";
+import getSecretStorageServiceOverride from "@codingame/monaco-vscode-secret-storage-service-override";
+import getStorageServiceOverride from "@codingame/monaco-vscode-storage-service-override";
+import getBannerServiceOverride from "@codingame/monaco-vscode-view-banner-service-override";
+import getStatusBarServiceOverride from "@codingame/monaco-vscode-view-status-bar-service-override";
+import getTitleBarServiceOverride from "@codingame/monaco-vscode-view-title-bar-service-override";
+import { registerFileSystemOverlay } from "@codingame/monaco-vscode-files-service-override";
+import { LanguageClientWrapper, type LanguageClientConfig } from "monaco-languageclient/lcwrapper";
+import {
+  defaultHtmlAugmentationInstructions,
+  defaultViewsInit,
+  MonacoVscodeApiWrapper,
+  type MonacoVscodeApiConfig,
+} from "monaco-languageclient/vscodeApiWrapper";
+import { configureDefaultWorkerFactory } from "monaco-languageclient/workerFactory";
+import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from "vscode-ws-jsonrpc";
+import * as vscode from "vscode";
+import { RestFileSystemProvider } from "./fsProvider";
+import { nixExtension, nixGrammarUrl, nixLanguageConfigurationUrl } from "./nixLanguage";
+
+const WORKSPACE_URI = vscode.Uri.file("/workspace");
+const WORKSPACE_FILE_URI = vscode.Uri.file("/workspace/.supervisord-now.code-workspace");
+
+export async function startWorkbench(container: HTMLElement): Promise<MonacoVscodeApiWrapper> {
+  const provider = new RestFileSystemProvider();
+  registerFileSystemOverlay(1, provider);
+
+  const vscodeApiConfig: MonacoVscodeApiConfig = {
+    $type: "extended",
+    logLevel: LogLevel.Warning,
+    serviceOverrides: {
+      ...getKeybindingsServiceOverride(),
+      ...getLifecycleServiceOverride(),
+      ...getBannerServiceOverride(),
+      ...getStatusBarServiceOverride(),
+      ...getTitleBarServiceOverride(),
+      ...getExplorerServiceOverride(),
+      ...getRemoteAgentServiceOverride(),
+      ...getEnvironmentServiceOverride(),
+      ...getSecretStorageServiceOverride(),
+      ...getStorageServiceOverride(),
+      ...getSearchServiceOverride(),
+      ...getPreferencesServiceOverride(),
+    },
+    viewsConfig: {
+      $type: "ViewsService",
+      htmlContainer: container,
+      htmlAugmentationInstructions: defaultHtmlAugmentationInstructions,
+      viewsInitFunc: defaultViewsInit,
+    },
+    workspaceConfig: {
+      enableWorkspaceTrust: false,
+      windowIndicator: {
+        label: "supervisord-now",
+        tooltip: "supervisord-now workspace",
+        command: "",
+      },
+      workspaceProvider: {
+        trusted: true,
+        async open() {
+          window.open(window.location.href);
+          return true;
+        },
+        workspace: {
+          workspaceUri: WORKSPACE_FILE_URI,
+        },
+      },
+      configurationDefaults: {
+        "window.title": "supervisord-now${separator}${dirty}${activeEditorShort}",
+      },
+      productConfiguration: {
+        nameShort: "supervisord-now",
+        nameLong: "supervisord-now",
+      },
+    },
+    userConfiguration: {
+      json: JSON.stringify({
+        "workbench.colorTheme": "Default Dark Modern",
+        "editor.wordBasedSuggestions": "off",
+        "explorer.autoReveal": true,
+        "files.autoSave": "off",
+        "window.commandCenter": false,
+      }),
+    },
+    extensions: [{ config: nixExtension }],
+    monacoWorkerFactory: configureDefaultWorkerFactory,
+  };
+
+  const apiWrapper = new MonacoVscodeApiWrapper(vscodeApiConfig);
+  await apiWrapper.start();
+
+  const nixRegistration = apiWrapper.getExtensionRegisterResult(nixExtension.name) as
+    | { registerFileUrl?: (path: string, url: string) => unknown }
+    | undefined;
+  nixRegistration?.registerFileUrl?.("/nix.tmLanguage.json", nixGrammarUrl);
+  nixRegistration?.registerFileUrl?.(
+    "/nix-language-configuration.json",
+    nixLanguageConfigurationUrl,
+  );
+
+  await startLanguageClient();
+
+  await vscode.commands.executeCommand("workbench.view.explorer");
+  const nowNix = vscode.Uri.file("/workspace/now.nix");
+  if (await fileExists(nowNix)) {
+    await vscode.window.showTextDocument(nowNix);
+  } else {
+    const flake = vscode.Uri.file("/workspace/flake.nix");
+    if (await fileExists(flake)) {
+      await vscode.window.showTextDocument(flake);
+    }
+  }
+
+  return apiWrapper;
+}
+
+async function startLanguageClient(): Promise<LanguageClientWrapper> {
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const url = `${protocol}://${window.location.host}/api/lsp`;
+  const webSocket = new WebSocket(url);
+  const iWebSocket = toSocket(webSocket);
+  const reader = new WebSocketMessageReader(iWebSocket);
+  const writer = new WebSocketMessageWriter(iWebSocket);
+
+  const languageClientConfig: LanguageClientConfig = {
+    languageId: "nix",
+    connection: {
+      options: {
+        $type: "WebSocketDirect",
+        webSocket,
+      },
+      messageTransports: { reader, writer },
+    },
+    clientOptions: {
+      documentSelector: [{ language: "nix", scheme: "file" }],
+      workspaceFolder: {
+        index: 0,
+        name: "workspace",
+        uri: WORKSPACE_URI,
+      },
+    },
+  };
+
+  const lcWrapper = new LanguageClientWrapper(languageClientConfig);
+  await lcWrapper.start();
+  return lcWrapper;
+}
+
+async function fileExists(uri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
+}

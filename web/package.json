@@ -1,0 +1,45 @@
+{
+  "name": "supervisord-now-web",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "format": "oxfmt",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codingame/monaco-vscode-api": "^25.1.2",
+    "@codingame/monaco-vscode-environment-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-explorer-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-extensions-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-files-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-keybindings-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-lifecycle-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-preferences-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-remote-agent-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-search-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-secret-storage-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-storage-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-theme-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-view-banner-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-view-status-bar-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-view-title-bar-service-override": "^25.1.2",
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@^25.1.2",
+    "monaco-languageclient": "10.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "vscode": "npm:@codingame/monaco-vscode-extension-api@^25.1.2",
+    "vscode-ws-jsonrpc": "~3.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "oxfmt": "^0.67.0",
+    "typescript": "~5.9.0",
+    "vite": "^7.1.0"
+  }
+}

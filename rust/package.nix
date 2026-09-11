@@ -1,9 +1,10 @@
 {
-  frontend,
-  lib,
   rustPlatform,
+  lib,
+  web,
 }:
-rustPlatform.buildRustPackage (finalAttrs: {
+rustPlatform.buildRustPackage {
+  pname = "supervisord-now";
   version = (lib.importTOML ./Cargo.toml).package.version;
 
   src = lib.fileset.toSource {
@@ -20,12 +21,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
   strictDeps = true;
   __structuredAttrs = true;
 
-  preBuild = ''
-    rm -rf src/frontend
-    ln -s ${frontend} src/frontend
+  postPatch = ''
+    substituteInPlace src/main.rs \
+      --replace-fail '$CARGO_MANIFEST_DIR/../web/dist' '${web}/dist'
   '';
 
-  doCheck = false;
-
   meta.mainProgram = "supervisord-now";
-})
+}

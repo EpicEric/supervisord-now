@@ -1,2 +1,5 @@
 .direnv
 result*
+web/node_modules
+web/dist
+target
