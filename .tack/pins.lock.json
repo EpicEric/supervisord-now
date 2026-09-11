@@ -1,0 +1,18 @@
+{
+  "nixpkgs": {
+    "type": "github",
+    "owner": "NixOS",
+    "repo": "nixpkgs",
+    "rev": "d5dfd8e6716dde34398bc14bc87c10dece9c8c68",
+    "narHash": "sha256-1CBkBf+Nhggykzlx0jvXrj5rk20btl+tK8Fa8Ml/BL4=",
+    "lastModified": 1789012029
+  },
+  "now": {
+    "type": "github",
+    "owner": "EpicEric",
+    "repo": "now",
+    "rev": "c967fc8e8312365435b6a97d1afe58f5008abebe",
+    "narHash": "sha256-XiLV7w7ORmaeQ+PlHP+34Ezf5CAOVtmjK6yh9P8wuHU=",
+    "lastModified": 1789086560
+  }
+}
