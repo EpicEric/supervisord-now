@@ -29,6 +29,7 @@
     "@codingame/monaco-vscode-view-banner-service-override": "^25.1.2",
     "@codingame/monaco-vscode-view-status-bar-service-override": "^25.1.2",
     "@codingame/monaco-vscode-view-title-bar-service-override": "^25.1.2",
+    "lucide-static": "^1.45.0",
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@^25.1.2",
     "monaco-languageclient": "10.7.0",
     "react": "^19.1.0",

@@ -1,5 +1,5 @@
 import type * as vscode from "vscode";
-import jobsIconUrl from "./jobs.svg?url";
+import jobsIconUrl from "lucide-static/icons/clipboard-list.svg?url";
 import { api, type EvalResponse, type JobStatus } from "../api";
 
 const VIEW_ID = "supervisordNow.jobs";
