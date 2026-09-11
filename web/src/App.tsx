@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { startWorkbench } from "./workbench";
-import { JobsPanel } from "./jobs/JobsPanel";
 
 export function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -15,7 +14,6 @@ export function App() {
   return (
     <div id="app">
       <div id="workbench-container" ref={containerRef} />
-      <JobsPanel />
     </div>
   );
 }

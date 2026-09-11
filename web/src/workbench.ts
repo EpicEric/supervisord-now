@@ -3,6 +3,8 @@ import getEnvironmentServiceOverride from "@codingame/monaco-vscode-environment-
 import getExplorerServiceOverride from "@codingame/monaco-vscode-explorer-service-override";
 import getKeybindingsServiceOverride from "@codingame/monaco-vscode-keybindings-service-override";
 import getLifecycleServiceOverride from "@codingame/monaco-vscode-lifecycle-service-override";
+import getOutputServiceOverride from "@codingame/monaco-vscode-output-service-override";
+import outputLinkDetectionWorkerUrl from "@codingame/monaco-vscode-output-service-override/worker?worker&url";
 import getPreferencesServiceOverride from "@codingame/monaco-vscode-preferences-service-override";
 import getRemoteAgentServiceOverride from "@codingame/monaco-vscode-remote-agent-service-override";
 import getSearchServiceOverride from "@codingame/monaco-vscode-search-service-override";
@@ -19,10 +21,15 @@ import {
   MonacoVscodeApiWrapper,
   type MonacoVscodeApiConfig,
 } from "monaco-languageclient/vscodeApiWrapper";
-import { configureDefaultWorkerFactory } from "monaco-languageclient/workerFactory";
+import {
+  defineDefaultWorkerLoaders,
+  useWorkerFactory,
+  Worker as MonacoWorker,
+} from "monaco-languageclient/workerFactory";
 import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from "vscode-ws-jsonrpc";
 import * as vscode from "vscode";
 import { RestFileSystemProvider } from "./fsProvider";
+import { jobsExtension, startJobsExtension } from "./jobs/jobsExtension";
 import { nixExtension, nixGrammarUrl, nixLanguageConfigurationUrl } from "./nixLanguage";
 
 const WORKSPACE_URI = vscode.Uri.file("/workspace");
@@ -46,6 +53,7 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
       ...getSecretStorageServiceOverride(),
       ...getStorageServiceOverride(),
       ...getSearchServiceOverride(),
+      ...getOutputServiceOverride(),
       ...getPreferencesServiceOverride(),
     },
     viewsConfig: {
@@ -88,8 +96,16 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
         "window.commandCenter": false,
       }),
     },
-    extensions: [{ config: nixExtension }],
-    monacoWorkerFactory: configureDefaultWorkerFactory,
+    extensions: [{ config: nixExtension }, jobsExtension],
+    monacoWorkerFactory: (logger) =>
+      useWorkerFactory({
+        logger,
+        workerLoaders: {
+          ...defineDefaultWorkerLoaders(),
+          OutputLinkDetectionWorker: () =>
+            new MonacoWorker(outputLinkDetectionWorkerUrl, { type: "module" }),
+        },
+      }),
   };
 
   const apiWrapper = new MonacoVscodeApiWrapper(vscodeApiConfig);
@@ -103,6 +119,14 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
     "/nix-language-configuration.json",
     nixLanguageConfigurationUrl,
   );
+
+  const jobsRegistration = apiWrapper.getExtensionRegisterResult(jobsExtension.config.name) as
+    | { getApi?: () => Promise<typeof vscode> }
+    | undefined;
+  if (!jobsRegistration?.getApi) {
+    throw new Error("jobs extension API is unavailable");
+  }
+  startJobsExtension(await jobsRegistration.getApi());
 
   await startLanguageClient();
 

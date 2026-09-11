@@ -19,6 +19,7 @@
     "@codingame/monaco-vscode-files-service-override": "^25.1.2",
     "@codingame/monaco-vscode-keybindings-service-override": "^25.1.2",
     "@codingame/monaco-vscode-lifecycle-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-output-service-override": "^25.1.2",
     "@codingame/monaco-vscode-preferences-service-override": "^25.1.2",
     "@codingame/monaco-vscode-remote-agent-service-override": "^25.1.2",
     "@codingame/monaco-vscode-search-service-override": "^25.1.2",
