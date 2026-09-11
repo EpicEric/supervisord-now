@@ -9,5 +9,5 @@ pkgs.callPackage ./package.nix {
   supervisord-now = pkgs.callPackage ./rust/package.nix {
     web = pkgs.callPackage ./web/package.nix { };
   };
-  inherit inputs;
+  inherit (inputs) nixpkgs;
 }

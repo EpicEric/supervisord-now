@@ -1,12 +1,12 @@
 {
+  cacert,
   dockerTools,
-  inputs,
   lib,
   nil,
   nix,
   nixfmt-rs,
+  nixpkgs,
   now,
-  pkgs,
   runCommand,
   supervisord,
   supervisord-now,
@@ -65,8 +65,8 @@ dockerTools.buildLayeredImage {
       supervisordConf
     ];
     Env = [
-      "NIX_PATH=nixpkgs=${inputs.nixpkgs}"
-      "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+      "NIX_PATH=nixpkgs=${nixpkgs}"
+      "NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
     ];
     ExposedPorts = {
       "9991" = { };

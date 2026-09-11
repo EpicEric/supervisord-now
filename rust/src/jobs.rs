@@ -79,6 +79,7 @@ impl Mode {
 
 #[derive(Serialize)]
 pub struct JobListing {
+    pub id: String,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub needs: Option<Vec<String>>,
@@ -118,13 +119,18 @@ pub async fn eval(State(state): State<AppState>) -> ApiResult<Json<serde_json::V
     let jobs: Vec<JobListing> = parsed
         .jobs
         .into_iter()
-        .map(|(name, job)| JobListing {
+        .map(|(id, job)| JobListing {
+            name: job
+                .get("name")
+                .and_then(|name| name.as_str())
+                .unwrap_or(&id)
+                .to_string(),
+            id,
             needs: job.get("needs").and_then(|n| n.as_array()).map(|arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str().map(str::to_string))
                     .collect()
             }),
-            name,
         })
         .collect();
 

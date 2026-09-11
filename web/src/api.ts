@@ -21,7 +21,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 const encode = (path: string) => encodeURIComponent(path);
 
 export type EvalResponse =
-  | { ok: true; mode: string; jobs: { name: string; needs?: string[] }[] }
+  | { ok: true; mode: string; jobs: { id: string; name: string; needs?: string[] }[] }
   | { ok: false; error: string };
 
 export type JobStatus = {

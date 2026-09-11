@@ -9,7 +9,7 @@ A single-container web IDE for authoring [now](https://now.dev.br) workflows and
 
 ```bash
 nix-build
-docker load < result
+docker load < $(nix-build)
 ```
 
 The imported image will have the tag `supervisord-now:latest`.

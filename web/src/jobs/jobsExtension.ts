@@ -14,6 +14,7 @@ type EnvironmentKind = "vars" | "secrets";
 type JobNode = {
   type: "job";
   name: string;
+  id: string;
   needs?: string[];
   status?: JobStatus;
 };
@@ -287,6 +288,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
         ...this.evalResult.jobs.map((job): JobNode => ({
           type: "job",
           name: job.name,
+          id: job.id,
           needs: job.needs,
           status: statusByName.get(job.name),
         })),
@@ -325,7 +327,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
   async run(node: JobNode): Promise<void> {
     if (node?.type !== "job") return;
     try {
-      await api.invoke(node.name, readEnvironment("vars"), readEnvironment("secrets"));
+      await api.invoke(node.id, readEnvironment("vars"), readEnvironment("secrets"));
       await this.refresh();
     } catch (error) {
       void this.editor.window.showErrorMessage(
@@ -337,7 +339,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
   async stop(node: JobNode): Promise<void> {
     if (node?.type !== "job") return;
     try {
-      await api.stop(node.name);
+      await api.stop(node.id);
       await this.refresh();
     } catch (error) {
       void this.editor.window.showErrorMessage(
@@ -349,7 +351,7 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
   async showLogs(node: JobNode): Promise<void> {
     if (node?.type !== "job") return;
     const channel =
-      this.outputChannels.get(node.name) ??
+      this.outputChannels.get(node.id) ??
       this.editor.window.createOutputChannel(`Job: ${node.name}`);
     this.outputChannels.set(node.name, channel);
     const panel = document.querySelector<HTMLElement>("#panel");
@@ -358,11 +360,11 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
     }
     channel.show(true);
 
-    this.logSockets.get(node.name)?.close();
-    const httpUrl = new URL(api.logsUrl(node.name), window.location.href);
+    this.logSockets.get(node.id)?.close();
+    const httpUrl = new URL(api.logsUrl(node.id), window.location.href);
     httpUrl.protocol = httpUrl.protocol === "https:" ? "wss:" : "ws:";
     const socket = new WebSocket(httpUrl);
-    this.logSockets.set(node.name, socket);
+    this.logSockets.set(node.id, socket);
     socket.onmessage = (event) => {
       const payload = JSON.parse(String(event.data)) as { data?: string; error?: string };
       if (payload.data) channel.append(payload.data);
@@ -370,8 +372,8 @@ class JobsTreeProvider implements vscode.TreeDataProvider<JobsNode>, vscode.Disp
     };
     socket.onerror = () => channel.appendLine("[log connection failed]");
     socket.onclose = () => {
-      if (this.logSockets.get(node.name) === socket) {
-        this.logSockets.delete(node.name);
+      if (this.logSockets.get(node.id) === socket) {
+        this.logSockets.delete(node.id);
       }
     };
   }
