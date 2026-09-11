@@ -2,4 +2,5 @@
 result*
 web/node_modules
 web/dist
+workspace
 target

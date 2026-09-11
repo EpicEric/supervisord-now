@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "format": "oxfmt",
+    "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -39,7 +40,8 @@
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",
     "oxfmt": "^0.67.0",
-    "typescript": "~5.9.0",
+    "oxlint": "^1.82.0",
+    "typescript": "^7.0.2",
     "vite": "^7.1.0"
   }
 }

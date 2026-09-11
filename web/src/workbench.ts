@@ -26,7 +26,6 @@ import { RestFileSystemProvider } from "./fsProvider";
 import { nixExtension, nixGrammarUrl, nixLanguageConfigurationUrl } from "./nixLanguage";
 
 const WORKSPACE_URI = vscode.Uri.file("/workspace");
-const WORKSPACE_FILE_URI = vscode.Uri.file("/workspace/.supervisord-now.code-workspace");
 
 export async function startWorkbench(container: HTMLElement): Promise<MonacoVscodeApiWrapper> {
   const provider = new RestFileSystemProvider();
@@ -69,7 +68,7 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
           return true;
         },
         workspace: {
-          workspaceUri: WORKSPACE_FILE_URI,
+          folderUri: WORKSPACE_URI,
         },
       },
       configurationDefaults: {

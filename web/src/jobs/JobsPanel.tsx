@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type EvalResponse, type JobStatus } from "../api";
 
+const POLL_MS = 3000;
+const BACKOFF_MAX_MS = 30_000;
+
 const STATE_CLASS: Record<string, string> = {
   RUNNING: "running",
   STOPPED: "stopped",
@@ -18,21 +21,34 @@ export function JobsPanel() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const delayRef = useRef(POLL_MS);
+
   const refresh = useCallback(async () => {
     try {
       const [evalResponse, jobData] = await Promise.all([api.evalWorkflow(), api.jobs()]);
       setEvalResult(evalResponse);
       setStatuses(jobData);
       setError(null);
+      delayRef.current = evalResponse.ok ? POLL_MS : Math.min(delayRef.current * 2, BACKOFF_MAX_MS);
     } catch (err) {
       setError(String(err));
+      delayRef.current = Math.min(delayRef.current * 2, BACKOFF_MAX_MS);
     }
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const interval = setInterval(() => void refresh(), 3000);
-    return () => clearInterval(interval);
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+    const loop = async () => {
+      await refresh();
+      if (cancelled) return;
+      timeout = setTimeout(() => void loop(), delayRef.current);
+    };
+    void loop();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, [refresh]);
 
   const invoke = async (name: string) => {
@@ -68,7 +84,9 @@ export function JobsPanel() {
     <aside id="jobs-panel">
       <header>
         <h2>Jobs</h2>
-        {evalResult?.ok && <span className="mode">{evalResult.mode}</span>}
+        {evalResult?.ok && evalResult.mode !== "empty" && (
+          <span className="mode">{evalResult.mode}</span>
+        )}
       </header>
 
       {error && <div className="error">{error}</div>}
@@ -115,7 +133,12 @@ export function JobsPanel() {
       </ul>
 
       {evalResult && !evalResult.ok && <pre className="error">{evalResult.error}</pre>}
-      {evalResult?.ok && evalResult.jobs.length === 0 && <p>No jobs in workflow.</p>}
+      {evalResult?.ok && evalResult.mode === "empty" && (
+        <p>No now.nix or flake.nix in workspace.</p>
+      )}
+      {evalResult?.ok && evalResult.mode !== "empty" && evalResult.jobs.length === 0 && (
+        <p>No jobs in workflow.</p>
+      )}
       {!evalResult && <p>Evaluating workflow...</p>}
 
       <EnvEditor />

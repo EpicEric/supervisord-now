@@ -19,7 +19,7 @@ import { api, workspaceUriToPath } from "./api";
 type TreeNode = {
   name: string;
   path: string;
-  kind: string;
+  type: string;
   size?: number;
   children?: TreeNode[];
 };
@@ -73,7 +73,7 @@ export class RestFileSystemProvider implements IFileSystemProviderWithFileReadWr
     if (!node) {
       throw createFileNotFound(resource);
     }
-    if (node.kind === "dir") {
+    if (node.type === "dir") {
       return { type: FileType.Directory, ctime: 0, mtime: 0, size: 0 };
     }
     return { type: FileType.File, ctime: 0, mtime: 0, size: node.size ?? 0 };
@@ -104,12 +104,12 @@ export class RestFileSystemProvider implements IFileSystemProviderWithFileReadWr
     if (!node) {
       throw createFileNotFound(resource);
     }
-    if (node.kind !== "dir") {
+    if (node.type !== "dir") {
       throw createFileNotFound(resource);
     }
     return (node.children ?? []).map((child): [string, FileType] => [
       child.name,
-      child.kind === "dir" ? FileType.Directory : FileType.File,
+      child.type === "dir" ? FileType.Directory : FileType.File,
     ]);
   }
 

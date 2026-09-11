@@ -88,19 +88,6 @@ fn ensure_workspace(workspace: &std::path::Path) {
     if let Err(err) = std::fs::create_dir_all(workspace) {
         tracing::error!("cannot create workspace {workspace:?}: {err}");
     }
-    let workspace_file = workspace.join(".supervisord-now.code-workspace");
-    if !workspace_file.exists() {
-        let content = json!({
-            "folders": [{ "uri": "file:///workspace" }],
-            "settings": {}
-        });
-        if let Err(err) = std::fs::write(
-            &workspace_file,
-            serde_json::to_string_pretty(&content).unwrap(),
-        ) {
-            tracing::error!("cannot write workspace file: {err}");
-        }
-    }
 }
 
 async fn health() -> impl IntoResponse {

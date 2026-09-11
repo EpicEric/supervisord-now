@@ -91,6 +91,9 @@ struct EvalOutput {
 }
 
 pub async fn eval(State(state): State<AppState>) -> ApiResult<Json<serde_json::Value>> {
+    if !state.workspace.join("flake.nix").exists() && !state.workspace.join("now.nix").exists() {
+        return Ok(Json(json!({ "mode": "empty", "jobs": [] })));
+    }
     let mode = workspace_mode(&state.workspace);
     let mut cmd = Command::new("now");
     cmd.arg("eval")

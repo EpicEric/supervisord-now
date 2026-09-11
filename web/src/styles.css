@@ -17,6 +17,81 @@ body,
   min-width: 0;
 }
 
+#app > #workbench-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#workbench-container > div:not([id]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#workbench-container > div:not([id]) > #workbench-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#titleBar {
+  position: relative;
+  flex: none;
+}
+
+#banner {
+  flex: none;
+}
+
+#workbench-top {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+#sidebarDiv,
+#sidebarRightDiv {
+  display: flex;
+  flex: none;
+}
+
+#sidebar {
+  width: 300px;
+}
+
+#editorsDiv {
+  flex: 1;
+  min-width: 0;
+}
+
+#editors {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+#sidebar-right {
+  max-width: 500px;
+}
+
+#auxiliaryBar-left,
+#auxiliaryBar {
+  max-width: 300px;
+}
+
+#panel {
+  display: none;
+  flex: 1;
+  min-height: 0;
+}
+
+#statusBar {
+  flex: none;
+}
+
 #jobs-panel {
   width: 380px;
   flex-shrink: 0;
