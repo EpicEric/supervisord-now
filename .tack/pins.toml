@@ -3,5 +3,5 @@ url = "github:NixOS/nixpkgs/nixpkgs-unstable"
 type = "fetch"
 
 [inputs.now]
-url = "github:EpicEric/now"
+url = "git+https://codeberg.org/now-runner/now"
 type = "fetch"

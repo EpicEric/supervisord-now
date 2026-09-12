@@ -7,9 +7,9 @@ use crate::jobs::{self, PROGRAM_PREFIX};
 use crate::state::AppState;
 
 const POLL_INTERVAL: Duration = Duration::from_secs(5);
-// Substitutions land in the store after the job transition that started them
+// Realizations finish after the job transition that started them
 // (eg. a long-running daemon realizing packages for minutes), so also push
-// the store periodically, not just on job state changes.
+// the root closures periodically, not just on job state changes.
 const SYNC_INTERVAL: Duration = Duration::from_secs(60);
 
 fn resume_file(state: &AppState) -> PathBuf {
@@ -75,6 +75,7 @@ async fn resume_running(state: &AppState) {
 
 pub fn spawn(state: AppState) {
     tokio::spawn(async move {
+        crate::nixcache::restore(&state).await;
         resume_running(&state).await;
         let mut running = read_resume(&state);
         let mut last_sync = Instant::now();

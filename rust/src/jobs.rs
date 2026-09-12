@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::path::Path;
 
 use axum::Json;
@@ -62,16 +63,15 @@ impl Mode {
         }
     }
 
-    fn run_args(self, workspace: &Path) -> Vec<String> {
+    fn run_args(self, workspace: &Path, gcroot_dir: &Path) -> Vec<OsString> {
         let mut args = match self {
             Mode::Workflow => {
-                vec![
-                    "--workflow".into(),
-                    workspace.join("now.nix").to_string_lossy().to_string(),
-                ]
+                vec!["--workflow".into(), workspace.join("now.nix").into()]
             }
-            Mode::Flake => vec!["--flake".into(), workspace.to_string_lossy().to_string()],
+            Mode::Flake => vec!["--flake".into(), workspace.into()],
         };
+        args.push("--gcroot-dir".into());
+        args.push(gcroot_dir.into());
         args.push("--env-file".into());
         args
     }
@@ -247,10 +247,19 @@ fn render_program_conf(
     state: &AppState,
     env_file: &Path,
 ) -> String {
-    let mut args = mode.run_args(&state.workspace);
-    args.push(env_file.to_string_lossy().to_string());
-    args.push(job.to_string());
-    let command = format!("now run {}", args.join(" "));
+    let mut args = mode.run_args(
+        &state.workspace,
+        &state.run_dir.join(crate::nixcache::GCROOTS_DIR),
+    );
+    args.push(env_file.into());
+    args.push(job.into());
+    let command = format!(
+        "now run {}",
+        args.iter()
+            .map(|arg| arg.to_string_lossy())
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
     format!(
         "[program:{group}]\n\
          command={command}\n\

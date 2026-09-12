@@ -31,4 +31,4 @@ Open <http://localhost:9991>. The mounted directory is the editor workspace.
 
 Alternatively, you can use a `flake.nix` that exposes a `now` workflow in its output.
 
-The `now-state` volume persists job registrations, job logs, and job environment files across container restarts: supervisord re-registers previously run jobs on boot, and jobs that were running just before the restart are resumed automatically. Stopped or completed jobs stay stopped until re-run from the UI. Without the volume, all jobs are forgotten on restart.
+The `now-state` volume persists job registrations, job logs, job environment files, and the Nix store cache backing the registered GC roots across container restarts: supervisord re-registers previously run jobs on boot, and jobs that were running just before the restart are resumed automatically. Stopped or completed jobs stay stopped until re-run from the UI. Without the volume, all jobs are forgotten on restart.

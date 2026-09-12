@@ -58,16 +58,16 @@ dockerTools.buildLayeredImage {
   tag = "latest";
 
   contents = [
-    supervisord-now
-    supervisord
-    now
-    now-step
-    nix
-    nil
-    nixfmt-rs
-    nixConf
     cacheKey
     jobsConfDir
+    now
+    now-step
+    nil
+    nix
+    nixConf
+    nixfmt-rs
+    supervisord-now
+    supervisord
   ];
 
   config = {

@@ -52,6 +52,7 @@ async fn main() {
     std::fs::create_dir_all(&run_dir).expect("create run dir");
     std::fs::create_dir_all(&conf_dir).expect("create conf dir");
     std::fs::create_dir_all(run_dir.join(nixcache::CACHE_DIR)).expect("create nix cache dir");
+    std::fs::create_dir_all(run_dir.join(nixcache::GCROOTS_DIR)).expect("create gcroots dir");
     ensure_workspace(&workspace);
 
     let state = AppState {

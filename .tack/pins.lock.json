@@ -8,11 +8,11 @@
     "lastModified": 1789012029
   },
   "now": {
-    "type": "github",
-    "owner": "EpicEric",
-    "repo": "now",
-    "rev": "c967fc8e8312365435b6a97d1afe58f5008abebe",
-    "narHash": "sha256-XiLV7w7ORmaeQ+PlHP+34Ezf5CAOVtmjK6yh9P8wuHU=",
-    "lastModified": 1789086560
+    "type": "git",
+    "url": "https://codeberg.org/now-runner/now",
+    "ref": "HEAD",
+    "rev": "3a9d9e91becfa091a6f9f24899df3152435f2f3a",
+    "narHash": "sha256-lBiMvLdhdPQz7NHjwkHIy1HzyzK1xOIQQneEBFwqJbI=",
+    "lastModified": 1789238113
   }
 }
