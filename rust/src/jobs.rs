@@ -274,7 +274,8 @@ fn render_program_conf(
          redirect_stderr=true\n\
          stdout_logfile={}\n\
          stdout_logfile_maxbytes=20971520\n\
-         stdout_logfile_backups=0\n",
+         stdout_logfile_backups=1\n\
+         stdout_logfile_timestamp_suffix=false\n",
         state.workspace.to_string_lossy(),
         state.run_dir.join(format!("{group}.log")).to_string_lossy(),
     )
