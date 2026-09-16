@@ -81,6 +81,51 @@ dockerTools.buildLayeredImage {
       "NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
       "SUPERVISOR_CONF_DIR=/var/lib/supervisord-now/conf"
     ];
+    Labels = {
+      permissions = builtins.toJSON {
+        ExposedPorts = {
+          "9991/tcp" = { };
+        };
+        HostConfig = {
+          Binds = [
+            "/usr/blueos/extensions/supervisord-now/workspace:/workspace"
+            "/usr/blueos/extensions/supervisord-now/state:/var/lib/supervisord-now"
+          ];
+          ExtraHosts = [ "host.docker.internal:host-gateway" ];
+          PortBindings = {
+            "9991/tcp" = [
+              {
+                HostPort = "";
+              }
+            ];
+          };
+          CpuPeriod = 100000;
+          CpuQuota = 20000;
+          Memory = 209715200;
+        };
+      };
+      version = "0.1.0";
+      authors = builtins.toJSON [
+        {
+          name = "Eric Rodrigues Pires";
+          email = "eric@eric.dev.br";
+        }
+      ];
+      maintainer = builtins.toJSON {
+        about = "Blue Robotics employee";
+        name = "Eric Rodrigues Pires";
+        email = "eric@eric.dev.br";
+      };
+      readme = "https://raw.githubusercontent.com/EpicEric/supervisord-now/refs/tags/{tag}/README.md";
+      links = builtins.toJSON {
+        website = "https://github.com/EpicEric/supervisord-now";
+        github = "https://github.com/EpicEric/supervisord-now";
+        documentation = "https://now.dev.br";
+        support = "mailto:eric@eric.dev.br";
+      };
+      type = "tool";
+      tags = "ide,nix,workflow,service";
+    };
     ExposedPorts = {
       "9991" = { };
     };

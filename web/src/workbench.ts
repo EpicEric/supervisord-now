@@ -147,8 +147,8 @@ export async function startWorkbench(container: HTMLElement): Promise<MonacoVsco
 }
 
 async function startLanguageClient(): Promise<void> {
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const url = `${protocol}://${window.location.host}/api/lsp`;
+  const url = new URL("api/lsp", window.location.href);
+  url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 
   const banner = document.createElement("div");
   banner.id = "connection-lost-banner";

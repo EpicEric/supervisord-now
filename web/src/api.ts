@@ -35,40 +35,40 @@ export type JobStatus = {
 };
 
 export const api = {
-  tree: () => fetch(`/api/files`).then((r) => r.json()),
-  readFile: (path: string) => request<{ content: string }>(`/api/file?path=${encode(path)}`),
+  tree: () => fetch(`api/files`).then((r) => r.json()),
+  readFile: (path: string) => request<{ content: string }>(`api/file?path=${encode(path)}`),
   writeFile: (path: string, content: string) =>
-    request<void>(`/api/file?path=${encode(path)}`, {
+    request<void>(`api/file?path=${encode(path)}`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ content }),
     }),
   deleteFile: (path: string) =>
-    request<void>(`/api/file?path=${encode(path)}`, { method: "DELETE" }),
-  mkdir: (path: string) => request<void>(`/api/dir?path=${encode(path)}`, { method: "POST" }),
+    request<void>(`api/file?path=${encode(path)}`, { method: "DELETE" }),
+  mkdir: (path: string) => request<void>(`api/dir?path=${encode(path)}`, { method: "POST" }),
   rename: (from: string, to: string) =>
-    request<void>(`/api/rename`, {
+    request<void>(`api/rename`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ from, to }),
     }),
   evalWorkflow: async (): Promise<EvalResponse> => {
-    const response = await fetch(`/api/eval`);
+    const response = await fetch(`api/eval`);
     const body = await response.json();
     if (!response.ok) {
       return { ok: false, error: body.error ?? `HTTP ${response.status}` };
     }
     return { ok: true, mode: body.mode, jobs: body.jobs };
   },
-  jobs: (): Promise<JobStatus[]> => fetch(`/api/jobs`).then((r) => r.json()),
+  jobs: (): Promise<JobStatus[]> => fetch(`api/jobs`).then((r) => r.json()),
   invoke: (name: string, vars: Record<string, string>, secrets: Record<string, string>) =>
-    request<void>(`/api/jobs/${encode(name)}/invoke`, {
+    request<void>(`api/jobs/${encode(name)}/invoke`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ vars, secrets }),
     }),
-  stop: (name: string) => request<void>(`/api/jobs/${encode(name)}/stop`, { method: "POST" }),
-  logsUrl: (name: string) => `/api/jobs/${encode(name)}/logs`,
+  stop: (name: string) => request<void>(`api/jobs/${encode(name)}/stop`, { method: "POST" }),
+  logsUrl: (name: string) => `api/jobs/${encode(name)}/logs`,
 };
 
 export const workspaceUriToPath = (uri: string): string => {

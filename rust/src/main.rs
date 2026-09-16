@@ -64,6 +64,7 @@ async fn main() {
     resume::spawn(state.clone());
 
     let app = Router::new()
+        .route("/register_service", get(register_service))
         .route("/api/health", get(health))
         .route("/api/files", get(files::tree))
         .route(
@@ -97,6 +98,27 @@ fn ensure_workspace(workspace: &std::path::Path) {
 
 async fn health() -> impl IntoResponse {
     Json(json!({ "status": "ok" }))
+}
+
+/// BlueOS metadata endpoint so the extension shows up in the BlueOS sidebar.
+/// See https://blueos.cloud/docs/latest/development/extensions/#metadata-dockerfile
+async fn register_service() -> impl IntoResponse {
+    const ICON: &str = concat!(
+        "<svg role=\"img\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">",
+        "<path fill=\"currentColor\" d=\"M9 4a2 2 0 0 0-2 2v1H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3V6a2 2 0 0 0-2-2H9Zm0 2h6v1H9V6Zm1 4 5 3-5 3v-6Z\"/>",
+        "</svg>"
+    );
+
+    Json(json!({
+        "name": "supervisord-now",
+        "description": "A single-container web IDE for authoring now workflows and running them as supervised jobs.",
+        "icon": ICON,
+        "company": "Eric Rodrigues Pires",
+        "version": env!("CARGO_PKG_VERSION"),
+        "webpage": "https://github.com/EpicEric/supervisord-now",
+        "api": "https://github.com/EpicEric/supervisord-now",
+        "works_in_relative_paths": true
+    }))
 }
 
 async fn serve_static(uri: Uri) -> impl IntoResponse {
